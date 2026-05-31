@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <title>Русско-английские слова</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+  <nav>
+    <button data-view="home"  class="active">Главная</button>
+    <button data-view="study">Учить</button>
+    <button data-view="stats">Статистика</button>
+    <button id="nav-ai-lesson" type="button">AI Урок</button>
+  </nav>
+
+  <!-- ── Home ─────────────────────────────────────── -->
+  <section id="view-home" class="view active">
+    <div class="card">
+      <h2>Английский каждый день</h2>
+      <p class="card-subtitle">Для начинающих: несколько новых слов в день — спокойно и без перегрузки</p>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-box">
+        <div class="value" id="stat-streak">0</div>
+        <div class="label">дней подряд</div>
+      </div>
+      <div class="stat-box">
+        <div class="value" id="stat-learned">0</div>
+        <div class="label">изучено слов</div>
+      </div>
+      <div class="stat-box">
+        <div class="value" id="stat-due">0</div>
+        <div class="label">карточек сейчас</div>
+      </div>
+    </div>
+
+    <!-- Today's recommended next step (beginner guidance) -->
+    <div id="next-step-card" class="card next-step-card" hidden>
+      <div class="next-step-label">Что дальше</div>
+      <div class="next-step-text" id="next-step-text"></div>
+      <button class="skill-start-btn" id="next-step-btn" type="button"></button>
+    </div>
+
+    <!-- Daily goal bar -->
+    <div class="daily-goal card">
+      <div class="daily-goal-header">
+        <span>Цель дня</span>
+        <button class="goal-edit-btn" id="goal-edit-btn" aria-label="Изменить цель">⚙</button>
+        <span id="daily-goal-text">0 / 20</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="daily-goal-fill" style="width:0%"></div>
+      </div>
+      <div class="daily-goal-header daily-goal-new">
+        <span>Новых слов в день</span>
+        <button class="goal-edit-btn" id="new-per-day-edit-btn" aria-label="Изменить число новых слов">⚙</button>
+        <span id="new-per-day-text">10</span>
+      </div>
+    </div>
+
+    <div class="skill-grid">
+
+      <!-- Flashcards -->
+      <div class="skill-card">
+        <div class="skill-header">
+          <span class="skill-icon">📖</span>
+          <div class="skill-info">
+            <div class="skill-title">Карточки</div>
+            <div class="skill-sub">SRS · <span id="skill-due-count">0</span> к повторению</div>
+          </div>
+        </div>
+        <div class="mode-select-mini" id="flashcard-mode-select">
+          <button data-mode="ru-en" class="active">RU→EN</button>
+          <button data-mode="en-ru">EN→RU</button>
+          <button data-mode="mixed">Микс</button>
+        </div>
+        <select class="category-filter" id="flashcard-category-select">
+          <option value="">Все темы</option>
+        </select>
+        <label class="toggle-label">
+          <input type="checkbox" id="typing-mode-toggle"> Режим набора текста
+        </label>
+        <button class="skill-start-btn" id="start-flashcard-btn">Начать</button>
+      </div>
+
+      <!-- Text quiz -->
+      <div class="skill-card">
+        <div class="skill-header">
+          <span class="skill-icon">🔤</span>
+          <div class="skill-info">
+            <div class="skill-title">Выбор ответа</div>
+            <div class="skill-sub">Читай RU → выбирай EN</div>
+          </div>
+        </div>
+        <button class="skill-start-btn" id="start-textquiz-btn">Начать</button>
+      </div>
+
+      <!-- Listening -->
+      <div class="skill-card">
+        <div class="skill-header">
+          <span class="skill-icon">🎧</span>
+          <div class="skill-info">
+            <div class="skill-title">Слушать</div>
+            <div class="skill-sub">Аудио → выбор ответа</div>
+          </div>
+        </div>
+        <div class="skill-sub" id="listen-unsupported-msg" style="display:none;color:var(--again)">Аудио недоступно</div>
+        <button class="skill-start-btn" id="start-listening-btn">Начать</button>
+      </div>
+
+      <!-- Speaking EN (produce English — the high-value direction for a learner;
+           promoted above the RU-production card below). -->
+      <div class="skill-card">
+        <div class="skill-header">
+          <span class="skill-icon">🗣️</span>
+          <div class="skill-info">
+            <div class="skill-title">Говорить EN <span class="skill-badge">рекомендуется</span></div>
+            <div class="skill-sub">Видишь RU → произнеси EN</div>
+          </div>
+        </div>
+        <div class="skill-sub" id="speak-en-unsupported-msg" style="display:none;color:var(--again)">Без Chrome — режим самооценки</div>
+        <label class="toggle-label">
+          <input type="checkbox" id="speak-en-sentence-toggle"> Предложения <span style="font-size:11px;color:var(--text-muted)">(продвинутый)</span>
+        </label>
+        <button class="skill-start-btn" id="start-speaking-en-btn">Начать</button>
+      </div>
+
+      <!-- Reading -->
+      <div class="skill-card">
+        <div class="skill-header">
+          <span class="skill-icon">📝</span>
+          <div class="skill-info">
+            <div class="skill-title">Читать</div>
+            <div class="skill-sub">Предложения · SRS</div>
+          </div>
+        </div>
+        <button class="skill-start-btn" id="start-reading-btn">Начать</button>
+      </div>
+
+      <!-- Speaking (produce Russian — lower value for an English learner; kept as
+           an optional listening-comprehension drill). -->
+      <div class="skill-card">
+        <div class="skill-header">
+          <span class="skill-icon">🎤</span>
+          <div class="skill-info">
+            <div class="skill-title">Говорить RU <span class="skill-sub" style="font-weight:400">необязательно</span></div>
+            <div class="skill-sub">Видишь EN → произнеси RU</div>
+          </div>
+        </div>
+        <div class="skill-sub" id="speak-unsupported-msg" style="display:none;color:var(--again)">Требуется Chrome</div>
+        <button class="skill-start-btn" id="start-speaking-btn">Начать</button>
+      </div>
+
+      <!-- Grammar -->
+      <div class="skill-card">
+        <div class="skill-header">
+          <span class="skill-icon">📐</span>
+          <div class="skill-info">
+            <div class="skill-title">Грамматика</div>
+            <div class="skill-sub">15 правил · объяснения + тест</div>
+          </div>
+        </div>
+        <button class="skill-start-btn" id="start-grammar-btn">Начать</button>
+      </div>
+
+    </div>
+
+    <!-- Custom words -->
+    <details class="custom-words-section card" id="custom-words-section">
+      <summary class="custom-words-summary">
+        <span>Мои слова</span>
+        <span class="custom-words-badge" id="custom-words-badge">0</span>
+      </summary>
+      <div id="custom-words-list" class="custom-words-list"></div>
+      <form id="custom-word-form" class="custom-word-form">
+        <input id="cw-ru"  type="text" placeholder="Русское слово"       required autocomplete="off">
+        <input id="cw-en"  type="text" placeholder="English word"         required autocomplete="off">
+        <input id="cw-cat" type="text" placeholder="Тема (необязательно)" autocomplete="off">
+        <button type="submit" class="btn-check">Добавить</button>
+      </form>
+    </details>
+
+  </section>
+
+  <!-- ── Study ─────────────────────────────────────── -->
+  <section id="view-study" class="view">
+    <div id="study-content">
+      <div class="study-header">
+        <button class="back-btn" id="back-btn">← Назад</button>
+        <span class="progress-text" id="progress-text">1 / 1</span>
+      </div>
+
+      <!-- Flashcard -->
+      <div class="flashcard-wrapper hidden" id="flashcard-wrapper">
+        <div class="flashcard" id="flashcard">
+          <div class="flashcard-front">
+            <span class="card-category" id="card-category"></span>
+            <div class="card-word" id="card-front-word"></div>
+            <div class="card-hint" id="card-front-hint">Нажмите, чтобы открыть</div>
+          </div>
+          <div class="flashcard-back">
+            <span class="card-category" id="card-category-back"></span>
+            <div class="card-word" id="card-back-word"></div>
+            <div class="card-translit" id="card-back-translit"></div>
+            <div class="card-phonetic hidden" id="card-back-phonetic"></div>
+            <div class="card-example hidden" id="card-back-example"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Speaker buttons (flashcard mode) -->
+      <div class="speaker-btn-row">
+        <button class="speaker-btn hidden" id="speaker-btn" aria-label="Воспроизвести по-русски">🔊 RU</button>
+        <button class="speaker-btn btn-speak-en hidden" id="speaker-btn-en" aria-label="Воспроизвести по-английски">🔊 EN</button>
+      </div>
+
+      <!-- Writing / typing mode input -->
+      <div class="writing-input-area hidden" id="writing-input-area">
+        <input type="text" class="writing-input" id="writing-input"
+               placeholder="Введите перевод..." autocomplete="off" autocorrect="off" autocapitalize="off">
+        <div class="writing-input-actions">
+          <button class="btn-check" id="writing-check-btn">Проверить</button>
+          <button class="btn-hint"  id="writing-hint-btn">💡 Hint</button>
+        </div>
+        <div class="writing-feedback hidden" id="writing-feedback"></div>
+      </div>
+
+      <!-- Rating buttons -->
+      <div class="rating-buttons hidden" id="rating-buttons">
+        <button class="rating-btn again" data-grade="0">Снова</button>
+        <button class="rating-btn hard"  data-grade="1">Трудно</button>
+        <button class="rating-btn good"  data-grade="2">Хорошо</button>
+        <button class="rating-btn easy"  data-grade="3">Легко</button>
+      </div>
+
+      <!-- Listening quiz -->
+      <div class="listening-quiz-area hidden" id="listening-quiz-area">
+        <button class="btn-secondary listen-lang-toggle" id="listen-lang-btn">🇬🇧 Listen in English</button>
+        <div class="listen-prompt">
+          <button class="replay-btn" id="replay-btn" aria-label="Воспроизвести ещё раз">🔊</button>
+          <span class="listen-hint">Что вы слышали?</span>
+        </div>
+        <div class="mc-grid" id="mc-grid"></div>
+        <div id="listening-error-hint" class="quiz-error-hint hidden" role="alert" aria-live="polite"></div>
+      </div>
+
+      <!-- Text quiz -->
+      <div class="text-quiz-area hidden" id="text-quiz-area">
+        <div class="text-quiz-prompt card">
+          <span class="card-category" id="text-quiz-category"></span>
+          <div class="text-quiz-word" id="text-quiz-word"></div>
+        </div>
+        <div class="mc-grid" id="text-mc-grid"></div>
+        <div id="quiz-error-hint" class="quiz-error-hint hidden" role="alert" aria-live="polite"></div>
+      </div>
+
+      <!-- Speaking -->
+      <div class="speaking-area hidden" id="speaking-area">
+        <div class="mic-prompt card">
+          <div class="mic-word-display" id="mic-word-display"></div>
+          <button class="mic-btn" id="mic-btn" aria-label="Начать запись">🎤</button>
+          <div class="mic-status" id="mic-status">Нажмите микрофон</div>
+          <div class="mic-transcript" id="mic-transcript"></div>
+        </div>
+      </div>
+
+      <!-- Speaking EN -->
+      <div class="speaking-en-area hidden" id="speaking-en-area">
+        <div class="mic-prompt card">
+          <p class="speak-en-instruction" id="speak-en-instruction">Скажи по-английски:</p>
+          <div class="mic-word-display" id="speak-en-word-display"></div>
+          <div class="speak-en-expected hidden" id="speak-en-expected"></div>
+          <button class="mic-btn" id="mic-btn-en" aria-label="Начать запись">🎤</button>
+          <div class="mic-status" id="speak-en-status">Нажмите микрофон</div>
+          <div class="mic-transcript" id="speak-en-transcript"></div>
+          <div class="mic-feedback hidden" id="speak-en-feedback"></div>
+          <p class="speak-en-fallback-msg hidden" id="speak-en-fallback-msg">Автоматическое распознавание недоступно в этом браузере. Оцените себя сами.</p>
+        </div>
+        <div class="rating-buttons hidden" id="speak-en-rating-buttons">
+          <button class="rating-btn again" data-en-grade="0">Снова</button>
+          <button class="rating-btn hard"  data-en-grade="1">Трудно</button>
+          <button class="rating-btn good"  data-en-grade="2">Хорошо</button>
+          <button class="rating-btn easy"  data-en-grade="3">Легко</button>
+        </div>
+      </div>
+
+      <!-- Reading -->
+      <div class="reading-area hidden" id="reading-area">
+        <div class="sentence-card card">
+          <div class="sentence-ru" id="sentence-ru"></div>
+          <div class="sentence-en hidden" id="sentence-en"></div>
+        </div>
+        <button class="btn-reveal-sentence" id="reveal-sentence-btn">Показать перевод</button>
+        <div class="sentence-rating hidden" id="sentence-rating">
+          <button class="rating-btn hard" data-sgrade="1">Трудно</button>
+          <button class="rating-btn good" data-sgrade="2">Хорошо</button>
+          <button class="rating-btn easy" data-sgrade="3">Легко</button>
+        </div>
+      </div>
+
+      <!-- Session summary -->
+      <div class="hidden" id="session-summary-area"></div>
+
+    </div>
+  </section>
+
+  <!-- ── Grammar ──────────────────────────────────────── -->
+  <section id="view-grammar" class="view">
+    <div class="study-header">
+      <button class="back-btn" id="grammar-back-btn">← Назад</button>
+      <span class="progress-text" id="grammar-title">Грамматика</span>
+    </div>
+
+    <!-- Grammar list panel -->
+    <div id="grammar-list-panel">
+      <div class="card">
+        <h2>Грамматика</h2>
+        <p class="card-subtitle">15 ключевых правил для русскоязычных</p>
+      </div>
+      <div id="grammar-cards-list" class="grammar-list"></div>
+    </div>
+
+    <!-- Grammar detail panel -->
+    <div id="grammar-detail-panel" class="hidden">
+      <div class="card">
+        <div class="grammar-detail-rule" id="grammar-detail-title"></div>
+        <p class="grammar-detail-explanation" id="grammar-detail-explanation"></p>
+      </div>
+      <div class="card">
+        <h3 class="grammar-section-heading">Примеры</h3>
+        <table class="grammar-examples">
+          <thead>
+            <tr>
+              <th>❌ Неправильно</th>
+              <th>✅ Правильно</th>
+              <th>Заметка</th>
+            </tr>
+          </thead>
+          <tbody id="grammar-examples-tbody"></tbody>
+        </table>
+      </div>
+      <div class="card">
+        <h3 class="grammar-section-heading">Мини-тест</h3>
+        <div id="grammar-quiz-area"></div>
+      </div>
+      <button class="grammar-mark-learned-btn" id="grammar-mark-learned-btn">Отметить как изученное</button>
+    </div>
+  </section>
+
+  <!-- ── Stats ─────────────────────────────────────── -->
+  <!-- AI Lesson -->
+  <section id="view-ai-lesson" class="view">
+    <div class="card ai-hero-card">
+      <h2>AI Урок</h2>
+      <p class="card-subtitle">Готовьте промпт для Claude или ChatGPT, а после урока сохраняйте краткий конспект в локальную базу знаний.</p>
+      <div class="ai-mini-stats">
+        <div class="ai-mini-stat">
+          <span id="ai-session-count">0</span>
+          <small>уроков</small>
+        </div>
+        <div class="ai-mini-stat">
+          <span id="ai-vocab-count">0</span>
+          <small>слов</small>
+        </div>
+        <div class="ai-mini-stat">
+          <span id="ai-weak-count">0</span>
+          <small>ошибок</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="card ai-panel" id="ai-placement-card">
+      <h3 class="ai-section-title">Тест уровня</h3>
+      <button class="skill-start-btn" id="ai-placement-btn" type="button">Пройти тест уровня</button>
+      <label class="ai-field" id="ai-placement-result-field" hidden>
+        <span>Результат теста</span>
+        <textarea id="ai-placement-result" class="ai-output" rows="6" hidden></textarea>
+      </label>
+      <button class="btn-secondary" id="ai-save-placement" type="button" hidden>Сохранить уровень</button>
+    </div>
+
+    <div class="card ai-panel">
+      <h3 class="ai-section-title">Профиль</h3>
+      <div class="ai-field-grid">
+        <label class="ai-field">
+          <span>Уровень</span>
+          <select id="ai-level">
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1">B1</option>
+            <option value="B2">B2</option>
+            <option value="C1">C1</option>
+          </select>
+        </label>
+        <label class="ai-field">
+          <span>Цель</span>
+          <input id="ai-goal" type="text" maxlength="200" autocomplete="off">
+        </label>
+        <label class="ai-field">
+          <span>Целевой уровень</span>
+          <input id="ai-target-level" type="text" maxlength="80" autocomplete="off">
+        </label>
+        <label class="ai-field">
+          <span>Время в неделю</span>
+          <input id="ai-weekly-time" type="text" maxlength="120" autocomplete="off">
+        </label>
+        <label class="ai-field">
+          <span>AI</span>
+          <select id="ai-preferred">
+            <option value="claude">Claude</option>
+            <option value="chatgpt">ChatGPT</option>
+          </select>
+        </label>
+        <label class="ai-field ai-field--wide">
+          <span>План</span>
+          <textarea id="ai-plan" rows="3" maxlength="1000"></textarea>
+        </label>
+      </div>
+      <button class="btn-secondary" id="ai-save-profile" type="button">Сохранить профиль</button>
+    </div>
+
+    <div id="ai-next-focus-banner" class="ai-next-focus-banner" hidden>
+      <span id="ai-next-focus-text"></span>
+      <button class="ai-banner-apply-btn" id="ai-apply-next-focus" type="button">Применить как тему</button>
+      <button class="ai-banner-dismiss-btn" id="ai-dismiss-banner" type="button" aria-label="Закрыть">✕</button>
+    </div>
+
+    <div class="card ai-panel">
+      <h3 class="ai-section-title">Промпт урока</h3>
+      <div class="ai-field-grid">
+        <label class="ai-field ai-field--wide">
+          <span>Тема</span>
+          <input id="ai-topic" type="text" maxlength="200" autocomplete="off">
+        </label>
+        <label class="ai-field">
+          <span>Грамматика</span>
+          <input id="ai-grammar" type="text" maxlength="200" autocomplete="off">
+        </label>
+        <label class="ai-field">
+          <span>Сложность</span>
+          <input id="ai-difficulty" type="text" maxlength="80" autocomplete="off">
+        </label>
+        <label class="ai-field ai-field--wide">
+          <span>Новая лексика</span>
+          <input id="ai-vocabulary" type="text" maxlength="200" autocomplete="off">
+        </label>
+        <label class="ai-field ai-field--wide">
+          <span>Повторить ошибки</span>
+          <input id="ai-weak-points" type="text" maxlength="200" autocomplete="off">
+          <button class="ai-autofill-btn" id="ai-autofill-weak" type="button" title="Заполнить из базы знаний">↺ Из базы</button>
+        </label>
+      </div>
+      <div class="ai-action-row">
+        <button class="skill-start-btn" id="ai-generate-prompt" type="button">Создать промпт</button>
+        <button class="btn-secondary" id="ai-beginner-prompt" type="button" title="Строгий промпт-тренер: исправляет каждую ошибку и объясняет правило">Тренер для начинающих</button>
+        <button class="btn-secondary" id="ai-copy-prompt" type="button">Копировать</button>
+        <button class="btn-secondary" id="ai-open-ai" type="button">Открыть AI</button>
+      </div>
+      <textarea id="ai-prompt-output" class="ai-output" rows="12" readonly></textarea>
+    </div>
+
+    <div class="card ai-panel">
+      <h3 class="ai-section-title">Конспект после урока</h3>
+      <textarea id="ai-summary-input" class="ai-output" rows="8" placeholder="[LESSON SUMMARY]
+Date: ...
+Topic: ...
+New vocabulary: ...
+Grammar covered: ...
+Errors noted: ...
+Fluency rating: ...
+Next focus: ...
+[END SUMMARY]"></textarea>
+      <button class="skill-start-btn" id="ai-import-summary" type="button">Добавить в базу знаний</button>
+      <button class="btn-secondary" id="ai-add-words-to-cards" type="button">Добавить слова урока в карточки</button>
+      <p class="card-subtitle">Новые слова из урока станут карточками для повторения.</p>
+      <p id="ai-status" class="ai-status ai-status--info"></p>
+    </div>
+
+    <div class="card ai-panel" id="ai-history-panel">
+      <h3 class="ai-section-title">История уроков <span id="ai-history-count" class="ai-badge">0</span></h3>
+      <div id="ai-session-list" class="ai-session-list">
+        <p class="ai-empty-state">Уроков пока нет. После урока добавьте конспект выше.</p>
+      </div>
+    </div>
+
+    <div class="card ai-panel">
+      <h3 class="ai-section-title">База знаний</h3>
+      <label class="ai-field">
+        <span>Краткий снимок для AI</span>
+        <textarea id="ai-kb-snapshot" class="ai-output" rows="8" readonly></textarea>
+      </label>
+      <label class="ai-field">
+        <span>Редактировать JSON</span>
+        <textarea id="ai-kb-json" class="ai-output ai-json-editor" rows="12" spellcheck="false"></textarea>
+      </label>
+      <div class="ai-action-row">
+        <button class="btn-secondary" id="ai-refresh-kb" type="button">Обновить</button>
+        <button class="btn-secondary" id="ai-save-json" type="button">Сохранить JSON</button>
+        <button class="btn-secondary ai-danger-btn" id="ai-reset-kb" type="button">Сбросить AI-базу</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-stats" class="view">
+    <div class="card">
+      <h2>Статистика</h2>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-box">
+        <div class="value" id="stats-streak">0</div>
+        <div class="label">дней подряд</div>
+      </div>
+      <div class="stat-box">
+        <div class="value" id="stats-learned">0</div>
+        <div class="label">изучено</div>
+      </div>
+      <div class="stat-box">
+        <div class="value" id="stats-due">0</div>
+        <div class="label">к повторению</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats-total-value" id="stats-reviews">0</div>
+      <div class="stats-total-label">всего повторений</div>
+    </div>
+
+    <div class="card stats-section">
+      <h3>По темам</h3>
+      <div id="category-list"></div>
+    </div>
+
+    <div class="card stats-section" id="export-import-card">
+      <h3>Экспорт и импорт</h3>
+      <p class="card-subtitle">Сохраните прогресс (включая историю AI-уроков) в файл или восстановите его из резервной копии. Для переноса между телефонами используйте зашифрованную копию.</p>
+      <div class="writing-input-actions export-import-actions">
+        <button class="btn-check" id="share-progress-btn" type="button" hidden>Поделиться прогрессом</button>
+        <button class="btn-check" id="export-encrypted-btn" type="button">🔒 Зашифрованный экспорт</button>
+        <button class="btn-secondary" id="export-progress-btn" type="button">Экспорт (без шифрования)</button>
+        <button class="btn-secondary" id="import-progress-btn" type="button">Импорт</button>
+      </div>
+      <input id="import-progress-file" type="file" accept="application/json,.json,text/plain,.txt" class="hidden">
+      <p class="card-subtitle" id="export-import-message" aria-live="polite"></p>
+    </div>
+
+    <button class="btn-secondary" id="reset-btn">Сбросить весь прогресс</button>
+  </section>
+
+  <!-- Onboarding wizard — shown once on first visit -->
+  <div id="onboarding-modal" class="ob-overlay" hidden role="dialog" aria-modal="true">
+    <div class="ob-card">
+      <div class="ob-dots">
+        <span class="ob-dot active"></span>
+        <span class="ob-dot"></span>
+        <span class="ob-dot"></span>
+        <span class="ob-dot"></span>
+      </div>
+      <div id="onboarding-body" class="ob-body"></div>
+      <div class="ob-actions">
+        <button id="onboarding-skip" class="btn-secondary ob-skip" type="button">Пропустить</button>
+        <button id="onboarding-prev" class="btn-secondary" type="button" hidden>← Назад</button>
+        <button id="onboarding-next" class="skill-start-btn" type="button">Далее →</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/grammar.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/srs.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/sentences.js"></script>
+  <script src="js/speech.js"></script>
+  <script src="js/kb.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/ai_lesson.js"></script>
+  <script src="js/onboarding.js"></script>
+  <script src="js/crypto_backup.js"></script>
+  <script src="js/export.js"></script>
+  <!-- Custom modal: replaces confirm()/prompt() which are blocked in Android WebView -->
+  <div id="app-modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-message">
+    <div class="modal-box">
+      <p class="modal-message" id="modal-message"></p>
+      <input type="number" class="modal-input hidden" id="modal-input" min="1" max="500">
+      <div class="modal-actions">
+        <button class="btn-secondary" id="modal-cancel-btn">Отмена</button>
+        <button class="btn-check" id="modal-confirm-btn">ОК</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>
